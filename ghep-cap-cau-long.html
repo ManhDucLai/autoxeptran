@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghép Cặp Cầu Lông</title>
+<style>
+  :root{
+    --bg:#0E1116;
+    --surface:#161A21;
+    --surface-2:#1E232C;
+    --surface-3:#262C37;
+    --border:#2A313C;
+    --text:#E7EAEE;
+    --text-dim:#8A93A3;
+    --text-faint:#5C6473;
+    --accent:#2DD4BF;
+    --accent-dark:#0F8F80;
+    --accent-soft:rgba(45,212,191,0.14);
+    --nam:#5B9BFF;
+    --nam-soft:rgba(91,155,255,0.16);
+    --nu:#FF6FA5;
+    --nu-soft:rgba(255,111,165,0.16);
+    --warn:#F5A623;
+    --warn-soft:rgba(245,166,35,0.14);
+    --danger:#FB5B5B;
+    --danger-soft:rgba(251,91,91,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px 64px;}
+
+  /* Header */
+  header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(14,17,22,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+  }
+  .header-inner{
+    max-width:720px;margin:0 auto;padding:16px 16px 14px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-title{font-size:17px;font-weight:700;letter-spacing:-0.01em;}
+  .brand-sub{font-size:11px;color:var(--text-faint);letter-spacing:0.04em;text-transform:uppercase;}
+  .net-strip{
+    height:3px;width:100%;
+    background:repeating-linear-gradient(115deg, var(--accent) 0 6px, transparent 6px 12px);
+    opacity:0.55;
+  }
+  .tabs{
+    display:flex;background:var(--surface-2);border-radius:999px;padding:3px;gap:2px;
+  }
+  .tab-btn{
+    border:none;background:transparent;color:var(--text-dim);
+    font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:999px;
+    cursor:pointer;transition:background .15s,color .15s;
+  }
+  .tab-btn.active{background:var(--accent);color:#06201C;}
+
+  main{padding-top:18px;}
+  .panel{display:none;}
+  .panel.active{display:block;animation:fade .18s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;padding:18px;margin-bottom:16px;
+  }
+  .card-title{
+    font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--text-faint);margin:0 0 14px;
+  }
+
+  /* Stat tiles */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .stat-tile{
+    background:var(--surface-2);border-radius:12px;padding:12px 10px;text-align:center;
+  }
+  .stat-num{font-size:22px;font-weight:800;line-height:1.1;}
+  .stat-label{font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .stat-tile.nam .stat-num{color:var(--nam);}
+  .stat-tile.nu .stat-num{color:var(--nu);}
+
+  .rule-note{
+    margin-top:14px;font-size:12.5px;color:var(--text-dim);
+    background:var(--surface-2);border-radius:10px;padding:10px 12px;line-height:1.5;
+  }
+  .rule-note b{color:var(--text);}
+
+  .warn-box{
+    border:1px solid rgba(245,166,35,0.4);background:var(--warn-soft);
+    border-radius:12px;padding:12px 14px;font-size:13px;color:#F8C97D;
+    margin-bottom:16px;line-height:1.5;
+  }
+  .warn-box+.warn-box{margin-top:-8px;}
+
+  
+  .btn{
+    border:none;border-radius:12px;font-weight:700;cursor:pointer;
+    font-size:14.5px;padding:14px 18px;width:100%;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform .08s, filter .15s;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--accent);color:#06201C;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-secondary{background:var(--surface-3);color:var(--text);margin-top:10px;}
+  .btn-secondary:hover{background:var(--surface-2);}
+
+  /* Schedule */
+  .round-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:16px;margin-bottom:12px;
+  }
+  .round-head{
+    display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;
+  }
+  .round-head .rnum{font-size:14px;font-weight:800;}
+  .round-head .rtime{font-size:12px;color:var(--text-dim);font-weight:600;}
+  .court-row{
+    background:var(--surface-2);border-radius:12px;padding:10px 12px;margin-bottom:8px;
+  }
+  .court-row:last-child{margin-bottom:0;}
+  .court-top{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+  }
+  .court-name{font-size:12px;font-weight:700;color:var(--text-dim);}
+  .match-type{
+    font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;
+    letter-spacing:0.02em;
+  }
+  .match-type.mixed{background:var(--nu-soft);color:var(--nu);}
+  .match-type.men{background:var(--nam-soft);color:var(--nam);}
+  .matchup{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .team{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .team.right{align-items:flex-end;text-align:right;}
+  .vs{font-size:11px;color:var(--text-faint);font-weight:700;padding:0 4px;}
+  .player{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;}
+  .team.right .player{flex-direction:row-reverse;}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .dot.nam{background:var(--nam);}
+  .dot.nu{background:var(--nu);}
+  .resting-row{
+    margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
+    font-size:12px;color:var(--text-faint);
+  }
+  .resting-row b{color:var(--text-dim);font-weight:700;}
+
+  /* Stats table */
+  .stat-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 0;border-bottom:1px solid var(--border);
+  }
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .name{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;}
+  .stat-row .count{font-size:12.5px;font-weight:700;color:var(--text-dim);}
+  .stat-row .count.zero{color:var(--danger);background:var(--danger-soft);padding:2px 8px;border-radius:999px;}
+
+  /* Members list (settings) */
+  .member-row{
+    display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);
+  }
+  .member-row:last-child{border-bottom:none;}
+  .avatar{
+    width:36px;height:36px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:800;color:#0A0C10;
+  }
+  .avatar.nam{background:var(--nam);}
+  .avatar.nu{background:var(--nu);}
+  .member-info{flex:1;min-width:0;}
+  .member-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .member-actions{display:flex;align-items:center;gap:6px;flex:none;}
+  .pill-toggle{
+    border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);
+    font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;
+  }
+  .pill-toggle.nam{color:var(--nam);border-color:rgba(91,155,255,0.35);}
+  .pill-toggle.nu{color:var(--nu);border-color:rgba(255,111,165,0.35);}
+  .switch{
+    width:38px;height:22px;border-radius:999px;background:var(--surface-3);
+    position:relative;cursor:pointer;flex:none;border:1px solid var(--border);
+    transition:background .15s;
+  }
+  .switch.on{background:var(--accent-dark);}
+  .switch .knob{
+    width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;
+    transition:left .15s;
+  }
+  .switch.on .knob{left:19px;}
+  .icon-btn{
+    width:28px;height:28px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);
+    color:var(--text-faint);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{color:var(--danger);border-color:rgba(251,91,91,0.4);}
+
+  /* Add member form */
+  .add-form{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+  .add-form-row{display:flex;gap:8px;}
+  .text-input{
+    flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    border-radius:10px;padding:11px 12px;font-size:14px;outline:none;min-width:0;
+  }
+  .text-input:focus{border-color:var(--accent);}
+  .gender-pick{display:flex;gap:6px;margin-top:8px;}
+  .gender-opt{
+    flex:1;border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);
+    border-radius:10px;padding:9px 0;font-size:13px;font-weight:700;text-align:center;cursor:pointer;
+  }
+  .gender-opt.sel-nam{border-color:var(--nam);color:var(--nam);background:var(--nam-soft);}
+  .gender-opt.sel-nu{border-color:var(--nu);color:var(--nu);background:var(--nu-soft);}
+  .add-btn{
+    margin-top:10px;width:100%;background:var(--surface-3);color:var(--accent);border:1px solid rgba(45,212,191,0.3);
+    border-radius:10px;padding:10px;font-size:13.5px;font-weight:700;cursor:pointer;
+  }
+  .add-btn:hover{background:var(--surface-2);}
+
+  /* Settings config rows */
+  .cfg-row{
+    display:flex;align-items:center;justify-content:space-between;padding:11px 0;
+    border-bottom:1px solid var(--border);gap:12px;
+  }
+  .cfg-row:last-child{border-bottom:none;}
+  .cfg-label{font-size:13.5px;font-weight:600;}
+  .cfg-hint{font-size:11px;color:var(--text-faint);margin-top:2px;}
+  .cfg-input-wrap{display:flex;align-items:center;gap:6px;flex:none;}
+  .stepper{
+    display:flex;align-items:center;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:10px;overflow:hidden;
+  }
+  .stepper button{
+    background:none;border:none;color:var(--text-dim);width:30px;height:32px;font-size:16px;cursor:pointer;
+  }
+  .stepper button:hover{color:var(--accent);}
+  .stepper input{
+    width:42px;text-align:center;background:none;border:none;color:var(--text);font-size:13.5px;
+    font-weight:700;outline:none;
+  }
+  .time-input{
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    border-radius:10px;padding:8px 10px;font-size:13.5px;font-weight:700;outline:none;
+  }
+
+  .empty-hint{
+    text-align:center;color:var(--text-faint);font-size:13px;padding:24px 8px;
+  }
+  footer.tip{text-align:center;font-size:11.5px;color:var(--text-faint);margin-top:24px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <circle cx="8" cy="16" r="3.4" fill="#2DD4BF"/>
+        <path d="M9.6 13.8 L20 3.5" stroke="#2DD4BF" stroke-width="1.4"/>
+        <path d="M9.6 13.8 L17.2 2.8" stroke="#2DD4BF" stroke-width="1.1" opacity="0.7"/>
+        <path d="M11.2 12.2 L21 6.5" stroke="#2DD4BF" stroke-width="1.1" opacity="0.7"/>
+        <path d="M8.2 12.4 L15.8 1.6" stroke="#2DD4BF" stroke-width="1.1" opacity="0.7"/>
+      </svg>
+      <div>
+        <div class="brand-title">Ghép Cặp Cầu Lông</div>
+        <div class="brand-sub">Xếp trận tự động</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn" data-action="tab" data-tab="home">Trang chủ</button>
+      <button class="tab-btn" data-action="tab" data-tab="settings">Cài đặt</button>
+    </div>
+  </div>
+  <div class="net-strip"></div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- HOME -->
+    <section class="panel" id="panel-home">
+      <div class="card">
+        <p class="card-title">Tổng quan buổi đánh</p>
+        <div class="stat-grid">
+          <div class="stat-tile nam"><div class="stat-num" id="statNam">0</div><div class="stat-label">Nam có mặt</div></div>
+          <div class="stat-tile nu"><div class="stat-num" id="statNu">0</div><div class="stat-label">Nữ có mặt</div></div>
+          <div class="stat-tile"><div class="stat-num" id="statSan">0</div><div class="stat-label">Sân</div></div>
+          <div class="stat-tile"><div class="stat-num" id="statMatchDur">0'</div><div class="stat-label">Mỗi trận</div></div>
+          <div class="stat-tile"><div class="stat-num" id="statSessionDur">0'</div><div class="stat-label">Tổng buổi</div></div>
+          <div class="stat-tile"><div class="stat-num" id="statRounds">0</div><div class="stat-label">Số vòng dự kiến</div></div>
+        </div>
+        <div class="rule-note">
+          Mỗi trận trên sân là <b>đôi nam nữ</b> (1 nam + 1 nữ mỗi bên) hoặc <b>đôi nam</b> (2 nam mỗi bên) — không xếp đôi nữ. Bắt đầu từ <b id="statStartTime">—</b>.
+        </div>
+      </div>
+
+      <div id="warnArea"></div>
+
+      <div class="card" style="text-align:center;">
+        <button class="btn btn-primary" id="btnAuto" data-action="auto">⚡ Tạo lịch tự động</button>
+        <button class="btn btn-secondary" id="btnRegen" data-action="regen" style="display:none;">🔁 Tạo lại ()</button>
+      </div>
+
+      <div id="scheduleArea"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="panel" id="panel-settings">
+      <div class="card">
+        <p class="card-title">Thành viên (<span id="memberCount">0</span>)</p>
+        <div id="memberList"></div>
+
+        <div class="add-form">
+          <div class="add-form-row">
+            <input type="text" class="text-input" id="newMemberName" placeholder="Tên người mới…" maxlength="40">
+          </div>
+          <div class="gender-pick">
+            <div class="gender-opt" id="genOptNam" data-action="pickgender" data-g="Nam">Nam</div>
+            <div class="gender-opt" id="genOptNu" data-action="pickgender" data-g="Nữ">Nữ</div>
+          </div>
+          <button class="add-btn" data-action="addmember">+ Thêm thành viên</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">Cấu hình buổi đánh</p>
+
+        <div class="cfg-row">
+          <div>
+            <div class="cfg-label">Số sân</div>
+            <div class="cfg-hint">Số sân cùng đánh một lúc</div>
+          </div>
+          <div class="stepper">
+            <button data-action="adjust" data-field="courts" data-delta="-1">−</button>
+            <input type="text" id="inpCourts" readonly>
+            <button data-action="adjust" data-field="courts" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="cfg-row">
+          <div>
+            <div class="cfg-label">Thời gian mỗi trận</div>
+            <div class="cfg-hint">Phút / trận</div>
+          </div>
+          <div class="stepper">
+            <button data-action="adjust" data-field="matchDuration" data-delta="-1">−</button>
+            <input type="text" id="inpMatchDur" readonly>
+            <button data-action="adjust" data-field="matchDuration" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="cfg-row">
+          <div>
+            <div class="cfg-label">Tổng thời gian buổi</div>
+            <div class="cfg-hint">Phút cho cả buổi (≈2 tiếng)</div>
+          </div>
+          <div class="stepper">
+            <button data-action="adjust" data-field="sessionDuration" data-delta="-10">−</button>
+            <input type="text" id="inpSessionDur" readonly>
+            <button data-action="adjust" data-field="sessionDuration" data-delta="10">+</button>
+          </div>
+        </div>
+
+        <div class="cfg-row">
+          <div>
+            <div class="cfg-label">Giờ bắt đầu</div>
+            <div class="cfg-hint">Để tính giờ từng vòng</div>
+          </div>
+          <input type="time" class="time-input" id="inpStartTime">
+        </div>
+      </div>
+    </section>
+
+    <footer class="tip">Mọi dữ liệu chỉ lưu tạm trong phiên này của trình duyệt.</footer>
+  </div>
+</main>
+
+<script>
+/* ---------------- STATE ---------------- */
+let nextId = 11;
+const state = {
+  activeTab: 'home',
+  members: [
+    { id: 1, name: 'M Quỳnh', gender: 'Nữ', present: true },
+    { id: 2, name: 'Bạn', gender: 'Nam', present: true },
+    { id: 3, name: 'Đình Hoàng', gender: 'Nam', present: true },
+    { id: 4, name: 'Đức Trung', gender: 'Nam', present: true },
+    { id: 5, name: 'Huyền Vy', gender: 'Nữ', present: true },
+    { id: 6, name: 'Nguyễn Thu Trang', gender: 'Nữ', present: true },
+    { id: 7, name: 'Quang Hải', gender: 'Nam', present: true },
+    { id: 8, name: 'Thuu', gender: 'Nam', present: true },
+    { id: 9, name: 'Trần Văn Hiếu', gender: 'Nam', present: true },
+    { id: 10, name: 'Thuỳ Linh', gender: 'Nữ', present: true }
+  ],
+  settings: { courts: 1, matchDuration: 12, sessionDuration: 120, startTime: '18:00' },
+  newGender: 'Nam',
+  schedule: null
+};
+
+/* ---------------- HELPERS ---------------- */
+function getInitials(name){
+  const parts = name.trim().split(/\s+/);
+  if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length-1].charAt(0)).toUpperCase();
+}
+function presentMembers(){ return state.members.filter(m => m.present); }
+function shuffle(arr){
+  const a = [...arr];
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function addMinutes(timeStr, mins){
+  const [h, m] = timeStr.split(':').map(Number);
+  const total = h*60 + m + mins;
+  const hh = Math.floor(((total % (24*60)) + 24*60) % (24*60) / 60);
+  const mm = ((total % 60) + 60) % 60;
+  return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+}
+
+/* ---------------- SCHEDULING ALGORITHM ---------------- */
+function generateSchedule(){
+  const members = presentMembers();
+  const { courts, matchDuration, sessionDuration, startTime } = state.settings;
+  const rounds = Math.max(1, Math.floor(sessionDuration / matchDuration));
+
+  const playCount = {};
+  members.forEach(p => { playCount[p.id] = 0; });
+  const partnerHistory = {};
+
+  function pairKey(a,b){ return [a.id,b.id].sort((x,y)=>x-y).join('-'); }
+  function histOf(a,b){ return partnerHistory[pairKey(a,b)] || 0; }
+  function bumpPartner(a,b){ const k = pairKey(a,b); partnerHistory[k] = (partnerHistory[k]||0)+1; }
+  function sortByPlayCount(pool){
+    return shuffle(pool).sort((a,b) => playCount[a.id] - playCount[b.id]);
+  }
+  function formTeamsMixed(women2, men2){
+    const [w1,w2] = women2, [m1,m2] = men2;
+    const costA = histOf(w1,m1) + histOf(w2,m2);
+    const costB = histOf(w1,m2) + histOf(w2,m1);
+    return costA <= costB ? {teamA:[w1,m1], teamB:[w2,m2]} : {teamA:[w1,m2], teamB:[w2,m1]};
+  }
+  function formTeamsMen(men4){
+    const [m1,m2,m3,m4] = men4;
+    const options = [
+      {teamA:[m1,m2], teamB:[m3,m4]},
+      {teamA:[m1,m3], teamB:[m2,m4]},
+      {teamA:[m1,m4], teamB:[m2,m3]}
+    ];
+    let best = options[0], bestCost = Infinity;
+    options.forEach(opt => {
+      const cost = histOf(opt.teamA[0],opt.teamA[1]) + histOf(opt.teamB[0],opt.teamB[1]);
+      if(cost < bestCost){ bestCost = cost; best = opt; }
+    });
+    return best;
+  }
+
+  const scheduleRounds = [];
+  let clock = startTime || '18:00';
+
+  for(let r = 0; r < rounds; r++){
+    const usedIds = new Set();
+    const courtsThisRound = [];
+
+    for(let c = 0; c < courts; c++){
+      const pool = members.filter(p => !usedIds.has(p.id));
+      const women = sortByPlayCount(pool.filter(p => p.gender === 'Nữ'));
+      const men = sortByPlayCount(pool.filter(p => p.gender === 'Nam'));
+
+      let matchPlayers, matchType, teams;
+
+      if(women.length >= 2 && men.length >= 2){
+        const women2 = women.slice(0,2), men2 = men.slice(0,2);
+        matchPlayers = [...women2, ...men2];
+        matchType = 'mixed';
+        teams = formTeamsMixed(women2, men2);
+      } else if(men.length >= 4){
+        const men4 = men.slice(0,4);
+        matchPlayers = men4;
+        matchType = 'men';
+        teams = formTeamsMen(men4);
+      } else {
+        continue;
+      }
+
+      matchPlayers.forEach(p => { usedIds.add(p.id); playCount[p.id]++; });
+      bumpPartner(teams.teamA[0], teams.teamA[1]);
+      bumpPartner(teams.teamB[0], teams.teamB[1]);
+
+      courtsThisRound.push({ court: c+1, type: matchType, teamA: teams.teamA, teamB: teams.teamB });
+    }
+
+    const resting = members.filter(p => !usedIds.has(p.id));
+    const start = clock;
+    const end = addMinutes(clock, matchDuration);
+    scheduleRounds.push({ round: r+1, start, end, courts: courtsThisRound, resting });
+    clock = end;
+  }
+
+  return { rounds: scheduleRounds, playCount, members };
+}
+
+function computeWarnings(){
+  const members = presentMembers();
+  const women = members.filter(p => p.gender === 'Nữ');
+  const men = members.filter(p => p.gender === 'Nam');
+  const warnings = [];
+  if(members.length < 4){
+    warnings.push('Cần tối thiểu 4 người có mặt để ghép được 1 trận.');
+  }
+  if(women.length === 1){
+    warnings.push('Hiện chỉ có 1 nữ có mặt — cần tối thiểu 2 nữ trong mỗi trận đôi nam nữ, nên nữ duy nhất này sẽ chưa thể vào sân (không xếp đôi nữ).');
+  }
+  if(women.length >= 2 && men.length < 2 && women.length >= 2){
+    warnings.push('Không đủ nam để ghép đôi nam nữ (cần tối thiểu 2 nam).');
+  }
+  if(women.length === 0 && men.length > 0 && men.length < 4){
+    warnings.push('Chỉ có nam nhưng chưa đủ 4 người để ghép đôi nam — cần thêm người hoặc thêm nữ.');
+  }
+  return warnings;
+}
+
+/* ---------------- RENDER ---------------- */
+function render(){
+  renderTabs();
+  renderHomeSummary();
+  renderWarnings();
+  renderMembers();
+  renderSettingsConfig();
+  if(state.schedule) renderSchedule(); else document.getElementById('scheduleArea').innerHTML = '';
+}
+
+function renderTabs(){
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === state.activeTab);
+  });
+  document.getElementById('panel-home').classList.toggle('active', state.activeTab === 'home');
+  document.getElementById('panel-settings').classList.toggle('active', state.activeTab === 'settings');
+}
+
+function renderHomeSummary(){
+  const members = presentMembers();
+  const nam = members.filter(p => p.gender === 'Nam').length;
+  const nu = members.filter(p => p.gender === 'Nữ').length;
+  const { courts, matchDuration, sessionDuration, startTime } = state.settings;
+  document.getElementById('statNam').textContent = nam;
+  document.getElementById('statNu').textContent = nu;
+  document.getElementById('statSan').textContent = courts;
+  document.getElementById('statMatchDur').textContent = matchDuration + "'";
+  document.getElementById('statSessionDur').textContent = sessionDuration + "'";
+  document.getElementById('statRounds').textContent = Math.max(1, Math.floor(sessionDuration / matchDuration));
+  document.getElementById('statStartTime').textContent = startTime;
+}
+
+function renderWarnings(){
+  const warnings = computeWarnings();
+  const el = document.getElementById('warnArea');
+  el.innerHTML = warnings.map(w => `<div class="warn-box">⚠️ ${w}</div>`).join('');
+}
+
+function renderMembers(){
+  document.getElementById('memberCount').textContent = state.members.length;
+  const html = state.members.map(m => {
+    const genderCls = m.gender === 'Nam' ? 'nam' : 'nu';
+    return `
+      <div class="member-row">
+        <div class="avatar ${genderCls}">${getInitials(m.name)}</div>
+        <div class="member-info"><div class="member-name">${escapeHtml(m.name)}</div></div>
+        <div class="member-actions">
+          <button class="pill-toggle ${genderCls}" data-action="togglegender" data-id="${m.id}">${m.gender}</button>
+          <div class="switch ${m.present ? 'on' : ''}" data-action="togglepresent" data-id="${m.id}" title="${m.present ? 'Có mặt' : 'Vắng'}">
+            <div class="knob"></div>
+          </div>
+          <button class="icon-btn" data-action="removemember" data-id="${m.id}">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('memberList').innerHTML = html || '<div class="empty-hint">Chưa có thành viên nào.</div>';
+
+  document.getElementById('genOptNam').classList.toggle('sel-nam', state.newGender === 'Nam');
+  document.getElementById('genOptNu').classList.toggle('sel-nu', state.newGender === 'Nữ');
+}
+
+function renderSettingsConfig(){
+  document.getElementById('inpCourts').value = state.settings.courts;
+  document.getElementById('inpMatchDur').value = state.settings.matchDuration;
+  document.getElementById('inpSessionDur').value = state.settings.sessionDuration;
+  document.getElementById('inpStartTime').value = state.settings.startTime;
+}
+
+function renderSchedule(){
+  const { rounds, playCount, members } = state.schedule;
+  document.getElementById('btnRegen').style.display = 'block';
+
+  const roundsHtml = rounds.map(rd => {
+    const courtsHtml = rd.courts.map(c => {
+      const typeLabel = c.type === 'mixed' ? 'Đôi nam nữ' : 'Đôi nam';
+      const typeCls = c.type === 'mixed' ? 'mixed' : 'men';
+      const teamHtml = (team) => team.map(p => {
+        const dotCls = p.gender === 'Nam' ? 'nam' : 'nu';
+        return `<span class="player"><span class="dot ${dotCls}"></span>${escapeHtml(p.name)}</span>`;
+      }).join('');
+      return `
+        <div class="court-row">
+          <div class="court-top">
+            <span class="court-name">Sân ${c.court}</span>
+            <span class="match-type ${typeCls}">${typeLabel}</span>
+          </div>
+          <div class="matchup">
+            <div class="team">${teamHtml(c.teamA)}</div>
+            <div class="vs">VS</div>
+            <div class="team right">${teamHtml(c.teamB)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    const restingHtml = rd.resting.length
+      ? `<div class="resting-row"><b>Nghỉ:</b> ${rd.resting.map(p => escapeHtml(p.name)).join(', ')}</div>`
+      : '';
+
+    return `
+      <div class="round-card">
+        <div class="round-head">
+          <span class="rnum">Vòng ${rd.round}</span>
+          <span class="rtime">${rd.start} – ${rd.end}</span>
+        </div>
+        ${courtsHtml || '<div class="empty-hint">Không đủ người hợp lệ cho vòng này.</div>'}
+        ${restingHtml}
+      </div>`;
+  }).join('');
+
+  const sortedStats = [...members].sort((a,b) => playCount[a.id] - playCount[b.id]);
+  const statsHtml = sortedStats.map(p => {
+    const cnt = playCount[p.id];
+    const dotCls = p.gender === 'Nam' ? 'nam' : 'nu';
+    return `
+      <div class="stat-row">
+        <span class="name"><span class="dot ${dotCls}"></span>${escapeHtml(p.name)}</span>
+        <span class="count ${cnt === 0 ? 'zero' : ''}">${cnt} trận</span>
+      </div>`;
+  }).join('');
+
+  document.getElementById('scheduleArea').innerHTML = `
+    <div class="card-title" style="margin:20px 0 10px 4px;">Lịch đấu</div>
+    ${roundsHtml}
+    <div class="card">
+      <p class="card-title">Số trận mỗi người</p>
+      ${statsHtml}
+    </div>`;
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ---------------- ACTIONS ---------------- */
+function handleAction(action, target){
+  if(action === 'tab'){
+    state.activeTab = target.dataset.tab;
+  }
+  else if(action === 'togglegender'){
+    const m = state.members.find(x => x.id === Number(target.dataset.id));
+    if(m){ m.gender = m.gender === 'Nam' ? 'Nữ' : 'Nam'; state.schedule = null; }
+  }
+  else if(action === 'togglepresent'){
+    const m = state.members.find(x => x.id === Number(target.dataset.id));
+    if(m){ m.present = !m.present; state.schedule = null; }
+  }
+  else if(action === 'removemember'){
+    state.members = state.members.filter(x => x.id !== Number(target.dataset.id));
+    state.schedule = null;
+  }
+  else if(action === 'pickgender'){
+    state.newGender = target.dataset.g;
+  }
+  else if(action === 'addmember'){
+    const input = document.getElementById('newMemberName');
+    const name = input.value.trim();
+    if(name){
+      state.members.push({ id: nextId++, name, gender: state.newGender, present: true });
+      input.value = '';
+      state.schedule = null;
+    }
+  }
+  else if(action === 'adjust'){
+    const field = target.dataset.field;
+    const delta = Number(target.dataset.delta);
+    const next = state.settings[field] + delta;
+    if(field === 'courts') state.settings.courts = Math.max(1, Math.min(10, next));
+    if(field === 'matchDuration') state.settings.matchDuration = Math.max(5, Math.min(60, next));
+    if(field === 'sessionDuration') state.settings.sessionDuration = Math.max(20, Math.min(360, next));
+    state.schedule = null;
+  }
+  else if(action === 'auto' || action === 'regen'){
+    state.schedule = generateSchedule();
+  }
+  render();
+}
+
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-action]');
+  if(!target) return;
+  handleAction(target.dataset.action, target);
+});
+
+document.getElementById('inpStartTime').addEventListener('change', (e) => {
+  state.settings.startTime = e.target.value;
+  state.schedule = null;
+  render();
+});
+
+document.getElementById('newMemberName').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    handleAction('addmember', document.querySelector('.add-btn'));
+  }
+});
+
+/* ---------------- INIT ---------------- */
+render();
+</script>
+</body>
+</html>
