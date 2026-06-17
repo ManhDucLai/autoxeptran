@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ghép Cặp Cầu Lông</title>
+<title>Ghép Cặp Cầu Lông Pro</title>
 <style>
   :root{
     --bg:#0E1116;
@@ -100,9 +100,7 @@
     border-radius:12px;padding:12px 14px;font-size:13px;color:#F8C97D;
     margin-bottom:16px;line-height:1.5;
   }
-  .warn-box+.warn-box{margin-top:-8px;}
 
-  
   .btn{
     border:none;border-radius:12px;font-weight:700;cursor:pointer;
     font-size:14.5px;padding:14px 18px;width:100%;
@@ -144,6 +142,7 @@
   .team.right{align-items:flex-end;text-align:right;}
   .vs{font-size:11px;color:var(--text-faint);font-weight:700;padding:0 4px;}
   .player{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;}
+  .player .lv-tag{font-size:10px;padding:1px 5px;border-radius:4px;background:var(--surface-3);color:var(--text-dim);font-weight:normal;}
   .team.right .player{flex-direction:row-reverse;}
   .dot{width:7px;height:7px;border-radius:50%;flex:none;}
   .dot.nam{background:var(--nam);}
@@ -179,12 +178,21 @@
   .member-info{flex:1;min-width:0;}
   .member-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .member-actions{display:flex;align-items:center;gap:6px;flex:none;}
+  
   .pill-toggle{
     border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);
     font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;
   }
   .pill-toggle.nam{color:var(--nam);border-color:rgba(91,155,255,0.35);}
   .pill-toggle.nu{color:var(--nu);border-color:rgba(255,111,165,0.35);}
+  
+  /* Level select style */
+  .level-select {
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim);
+    font-size: 11.5px; font-weight: 700; padding: 5px 8px; border-radius: 8px; outline: none; cursor: pointer;
+  }
+  .level-select:focus { border-color: var(--accent); color: var(--text); }
+
   .switch{
     width:38px;height:22px;border-radius:999px;background:var(--surface-3);
     position:relative;cursor:pointer;flex:none;border:1px solid var(--border);
@@ -204,12 +212,19 @@
 
   /* Add member form */
   .add-form{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
-  .add-form-row{display:flex;gap:8px;}
+  .add-form-row{display:flex;gap:8px;align-items:center;}
   .text-input{
-    flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    flex:2;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
     border-radius:10px;padding:11px 12px;font-size:14px;outline:none;min-width:0;
   }
   .text-input:focus{border-color:var(--accent);}
+  
+  .select-input {
+    flex:1; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    border-radius:10px; padding:11px 12px; font-size:14px; outline:none; height:41px; cursor:pointer;
+  }
+  .select-input:focus{border-color:var(--accent);}
+
   .gender-pick{display:flex;gap:6px;margin-top:8px;}
   .gender-opt{
     flex:1;border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);
@@ -283,7 +298,6 @@
 <main>
   <div class="wrap">
 
-    <!-- HOME -->
     <section class="panel" id="panel-home">
       <div class="card">
         <p class="card-title">Tổng quan buổi đánh</p>
@@ -296,7 +310,7 @@
           <div class="stat-tile"><div class="stat-num" id="statRounds">0</div><div class="stat-label">Số vòng dự kiến</div></div>
         </div>
         <div class="rule-note">
-          Mỗi trận trên sân là <b>đôi nam nữ</b> (1 nam + 1 nữ mỗi bên) hoặc <b>đôi nam</b> (2 nam mỗi bên) — không xếp đôi nữ. Bắt đầu từ <b id="statStartTime">—</b>.
+          Mỗi trận trên sân là <b>đôi nam nữ</b> hoặc <b>đôi nam</b>. Thuật toán tự động ghép cặp cân bằng trình độ (chênh lệch giữa 2 bên &le; 1 cấp). Bắt đầu từ <b id="statStartTime">—</b>.
         </div>
       </div>
 
@@ -310,7 +324,6 @@
       <div id="scheduleArea"></div>
     </section>
 
-    <!-- SETTINGS -->
     <section class="panel" id="panel-settings">
       <div class="card">
         <p class="card-title">Thành viên (<span id="memberCount">0</span>)</p>
@@ -319,6 +332,12 @@
         <div class="add-form">
           <div class="add-form-row">
             <input type="text" class="text-input" id="newMemberName" placeholder="Tên người mới…" maxlength="40">
+            <select class="select-input" id="newMemberLevel">
+              <option value="newbie">newbie</option>
+              <option value="Y">Yếu (Y)</option>
+              <option value="TBY" selected>Trung bình yếu (TBY)</option>
+              <option value="TB">Trung bình (TB)</option>
+            </select>
           </div>
           <div class="gender-pick">
             <div class="gender-opt" id="genOptNam" data-action="pickgender" data-g="Nam">Nam</div>
@@ -384,19 +403,22 @@
 <script>
 /* ---------------- STATE ---------------- */
 let nextId = 11;
+// Định nghĩa trọng số điểm để tính toán độ cân bằng trình độ
+const LV_WEIGHTS = { 'newbie': 1, 'Y': 2, 'TBY': 3, 'TB': 4 };
+
 const state = {
   activeTab: 'home',
   members: [
-    { id: 1, name: 'M Quỳnh', gender: 'Nữ', present: true },
-    { id: 2, name: 'Bạn', gender: 'Nam', present: true },
-    { id: 3, name: 'Đình Hoàng', gender: 'Nam', present: true },
-    { id: 4, name: 'Đức Trung', gender: 'Nam', present: true },
-    { id: 5, name: 'Huyền Vy', gender: 'Nữ', present: true },
-    { id: 6, name: 'Nguyễn Thu Trang', gender: 'Nữ', present: true },
-    { id: 7, name: 'Quang Hải', gender: 'Nam', present: true },
-    { id: 8, name: 'Thuu', gender: 'Nam', present: true },
-    { id: 9, name: 'Trần Văn Hiếu', gender: 'Nam', present: true },
-    { id: 10, name: 'Thuỳ Linh', gender: 'Nữ', present: true }
+    { id: 1, name: 'M Quỳnh', gender: 'Nữ', level: 'Y', present: true },
+    { id: 2, name: 'Bạn', gender: 'Nam', level: 'TB', present: true },
+    { id: 3, name: 'Đình Hoàng', gender: 'Nam', level: 'TBY', present: true },
+    { id: 4, name: 'Đức Trung', gender: 'Nam', level: 'TBY', present: true },
+    { id: 5, name: 'Huyền Vy', gender: 'Nữ', level: 'newbie', present: true },
+    { id: 6, name: 'Nguyễn Thu Trang', gender: 'Nữ', level: 'TBY', present: true },
+    { id: 7, name: 'Quang Hải', gender: 'Nam', level: 'TB', present: true },
+    { id: 8, name: 'Thuu', gender: 'Nam', level: 'Y', present: true },
+    { id: 9, name: 'Trần Văn Hiếu', gender: 'Nam', level: 'TB', present: true },
+    { id: 10, name: 'Thuỳ Linh', gender: 'Nữ', level: 'TBY', present: true }
   ],
   settings: { courts: 1, matchDuration: 12, sessionDuration: 120, startTime: '18:00' },
   newGender: 'Nam',
@@ -426,82 +448,197 @@ function addMinutes(timeStr, mins){
   return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
 }
 
-/* ---------------- SCHEDULING ALGORITHM ---------------- */
-function generateSchedule(){
+/* ---------------- SCHEDULING ALGORITHM WITH FLEXIBLE LEVEL BALANCING ---------------- */
+function generateSchedule() {
   const members = presentMembers();
-  const { courts, matchDuration, sessionDuration, startTime } = state.settings;
+  const { matchDuration, sessionDuration, startTime } = state.settings;
   const rounds = Math.max(1, Math.floor(sessionDuration / matchDuration));
 
   const playCount = {};
-  members.forEach(p => { playCount[p.id] = 0; });
+  const lastRound = {};
   const partnerHistory = {};
 
-  function pairKey(a,b){ return [a.id,b.id].sort((x,y)=>x-y).join('-'); }
-  function histOf(a,b){ return partnerHistory[pairKey(a,b)] || 0; }
-  function bumpPartner(a,b){ const k = pairKey(a,b); partnerHistory[k] = (partnerHistory[k]||0)+1; }
-  function sortByPlayCount(pool){
-    return shuffle(pool).sort((a,b) => playCount[a.id] - playCount[b.id]);
+  members.forEach(p => {
+    playCount[p.id] = 0;
+    lastRound[p.id] = -999;
+  });
+
+  const totalSlots = rounds * 4;
+  const base = Math.floor(totalSlots / members.length);
+  const extra = totalSlots % members.length;
+  const targetPlay = {};
+
+  shuffle(members).forEach((p, i) => {
+    targetPlay[p.id] = base;
+    if (i < extra) targetPlay[p.id]++;
+  });
+
+  function pairKey(a, b) {
+    return [a.id, b.id].sort((x, y) => x - y).join('-');
   }
-  function formTeamsMixed(women2, men2){
-    const [w1,w2] = women2, [m1,m2] = men2;
-    const costA = histOf(w1,m1) + histOf(w2,m2);
-    const costB = histOf(w1,m2) + histOf(w2,m1);
-    return costA <= costB ? {teamA:[w1,m1], teamB:[w2,m2]} : {teamA:[w1,m2], teamB:[w2,m1]};
+  function pairCount(a, b) {
+    return partnerHistory[pairKey(a, b)] || 0;
   }
-  function formTeamsMen(men4){
-    const [m1,m2,m3,m4] = men4;
-    const options = [
-      {teamA:[m1,m2], teamB:[m3,m4]},
-      {teamA:[m1,m3], teamB:[m2,m4]},
-      {teamA:[m1,m4], teamB:[m2,m3]}
-    ];
-    let best = options[0], bestCost = Infinity;
-    options.forEach(opt => {
-      const cost = histOf(opt.teamA[0],opt.teamA[1]) + histOf(opt.teamB[0],opt.teamB[1]);
-      if(cost < bestCost){ bestCost = cost; best = opt; }
+  function addPair(a, b) {
+    const k = pairKey(a, b);
+    partnerHistory[k] = (partnerHistory[k] || 0) + 1;
+  }
+
+  function sortPlayers(pool, round) {
+    return [...pool].sort((a, b) => {
+      const needA = targetPlay[a.id] - playCount[a.id];
+      const needB = targetPlay[b.id] - playCount[b.id];
+      if (needA !== needB) return needB - needA;
+      const restA = round - lastRound[a.id];
+      const restB = round - lastRound[b.id];
+      if (restA !== restB) return restB - restA;
+      return playCount[a.id] - playCount[b.id];
     });
-    return best;
+  }
+
+  // Thuật toán tìm trận Đôi Nam Nữ tối ưu có nới lỏng biên độ nếu bí người
+  function getBestMixedMatch(womenPool, menPool) {
+    let bestMatch = null;
+    let minScore = Infinity;
+
+    // Mở rộng pool ứng viên để máy có nhiều lựa chọn hơn khi thiếu người hoặc lệch trình độ sâu
+    const topW = womenPool.slice(0, 6);
+    const topM = menPool.slice(0, 6);
+
+    if (topW.length < 2 || topM.length < 2) return null;
+
+    for (let i = 0; i < topW.length; i++) {
+      for (let j = i + 1; j < topW.length; j++) {
+        for (let m1 = 0; m1 < topM.length; m1++) {
+          for (let m2 = m1 + 1; m2 < topM.length; m2++) {
+            const w1 = topW[i], w2 = topW[j];
+            const originalM1 = topM[m1], originalM2 = topM[m2];
+
+            const options = [
+              { ta: [w1, originalM1], tb: [w2, originalM2] },
+              { ta: [w1, originalM2], tb: [w2, originalM1] }
+            ];
+
+            options.forEach(opt => {
+              const scoreA = LV_WEIGHTS[opt.ta[0].level] + LV_WEIGHTS[opt.ta[1].level];
+              const scoreB = LV_WEIGHTS[opt.tb[0].level] + LV_WEIGHTS[opt.tb[1].level];
+              const diffTeams = Math.abs(scoreA - scoreB);
+
+              // CƠ CHẾ NỚI LỎNG THÔNG MINH: Mục tiêu cân bằng <= 1.5, tối đa chấp nhận đến 2.5 nếu không còn ai hợp lệ
+              if (diffTeams <= 2.5) {
+                const historyCost = pairCount(opt.ta[0], opt.ta[1]) + pairCount(opt.tb[0], opt.tb[1]);
+                const totalPlayed = playCount[w1.id] + playCount[w2.id] + playCount[originalM1.id] + playCount[originalM2.id];
+                
+                // Trận nào có diffTeams càng nhỏ (càng cân) thì điểm finalScore càng thấp (càng được ưu tiên trước)
+                const finalScore = diffTeams * 50 + historyCost * 20 + totalPlayed;
+                if (finalScore < minScore) {
+                  minScore = finalScore;
+                  bestMatch = { teamA: opt.ta, teamB: opt.tb, players: [w1, w2, originalM1, originalM2] };
+                }
+              }
+            });
+          }
+        }
+      }
+    }
+    return bestMatch;
+  }
+
+  function getBestMenMatch(menPool) {
+    let bestMatch = null;
+    let minScore = Infinity;
+    const topM = menPool.slice(0, 8);
+
+    if (topM.length < 4) return null;
+
+    for (let i = 0; i < topM.length; i++) {
+      for (let j = i + 1; j < topM.length; j++) {
+        for (let k = j + 1; k < topM.length; k++) {
+          for (let l = k + 1; l < topM.length; l++) {
+            const p1 = topM[i], p2 = topM[j], p3 = topM[k], p4 = topM[l];
+
+            const options = [
+              { ta: [p1, p2], tb: [p3, p4] },
+              { ta: [p1, p3], tb: [p2, p4] },
+              { ta: [p1, p4], tb: [p2, p3] }
+            ];
+
+            options.forEach(opt => {
+              const scoreA = LV_WEIGHTS[opt.ta[0].level] + LV_WEIGHTS[opt.ta[1].level];
+              const scoreB = LV_WEIGHTS[opt.tb[0].level] + LV_WEIGHTS[opt.tb[1].level];
+              const diffTeams = Math.abs(scoreA - scoreB);
+
+              if (diffTeams <= 2.5) {
+                const historyCost = pairCount(opt.ta[0], opt.ta[1]) + pairCount(opt.tb[0], opt.tb[1]);
+                const totalPlayed = playCount[p1.id] + playCount[p2.id] + playCount[p3.id] + playCount[p4.id];
+
+                const finalScore = diffTeams * 50 + historyCost * 20 + totalPlayed;
+                if (finalScore < minScore) {
+                  minScore = finalScore;
+                  bestMatch = { teamA: opt.ta, teamB: opt.tb, players: [p1, p2, p3, p4] };
+                }
+              }
+            });
+          }
+        }
+      }
+    }
+    return bestMatch;
   }
 
   const scheduleRounds = [];
-  let clock = startTime || '18:00';
+  let clock = startTime;
 
-  for(let r = 0; r < rounds; r++){
-    const usedIds = new Set();
-    const courtsThisRound = [];
+  for (let r = 0; r < rounds; r++) {
+    const women = sortPlayers(members.filter(p => p.gender === 'Nữ'), r);
+    const men = sortPlayers(members.filter(p => p.gender === 'Nam'), r);
 
-    for(let c = 0; c < courts; c++){
-      const pool = members.filter(p => !usedIds.has(p.id));
-      const women = sortByPlayCount(pool.filter(p => p.gender === 'Nữ'));
-      const men = sortByPlayCount(pool.filter(p => p.gender === 'Nam'));
+    let matchMixed = getBestMixedMatch(women, men);
+    let matchMen = getBestMenMatch(men);
 
-      let matchPlayers, matchType, teams;
+    let selectedMatch = null;
+    let matchType = '';
 
-      if(women.length >= 2 && men.length >= 2){
-        const women2 = women.slice(0,2), men2 = men.slice(0,2);
-        matchPlayers = [...women2, ...men2];
-        matchType = 'mixed';
-        teams = formTeamsMixed(women2, men2);
-      } else if(men.length >= 4){
-        const men4 = men.slice(0,4);
-        matchPlayers = men4;
-        matchType = 'men';
-        teams = formTeamsMen(men4);
+    if (matchMixed && matchMen) {
+      const sumMixedPlay = matchMixed.players.reduce((s, p) => s + playCount[p.id], 0);
+      const sumMenPlay = matchMen.players.reduce((s, p) => s + playCount[p.id], 0);
+      if (sumMixedPlay <= sumMenPlay) {
+        selectedMatch = matchMixed; matchType = 'mixed';
       } else {
-        continue;
+        selectedMatch = matchMen; matchType = 'men';
       }
-
-      matchPlayers.forEach(p => { usedIds.add(p.id); playCount[p.id]++; });
-      bumpPartner(teams.teamA[0], teams.teamA[1]);
-      bumpPartner(teams.teamB[0], teams.teamB[1]);
-
-      courtsThisRound.push({ court: c+1, type: matchType, teamA: teams.teamA, teamB: teams.teamB });
+    } else if (matchMixed) {
+      selectedMatch = matchMixed; matchType = 'mixed';
+    } else if (matchMen) {
+      selectedMatch = matchMen; matchType = 'men';
     }
 
-    const resting = members.filter(p => !usedIds.has(p.id));
-    const start = clock;
+    if (!selectedMatch) continue;
+
+    selectedMatch.players.forEach(p => {
+      playCount[p.id]++;
+      lastRound[p.id] = r;
+    });
+
+    addPair(selectedMatch.teamA[0], selectedMatch.teamA[1]);
+    addPair(selectedMatch.teamB[0], selectedMatch.teamB[1]);
+
+    const resting = members.filter(p => !selectedMatch.players.some(x => x.id === p.id));
     const end = addMinutes(clock, matchDuration);
-    scheduleRounds.push({ round: r+1, start, end, courts: courtsThisRound, resting });
+
+    scheduleRounds.push({
+      round: r + 1,
+      start: clock,
+      end,
+      resting,
+      courts: [{
+        court: 1,
+        type: matchType,
+        teamA: selectedMatch.teamA,
+        teamB: selectedMatch.teamB
+      }]
+    });
+
     clock = end;
   }
 
@@ -511,19 +648,12 @@ function generateSchedule(){
 function computeWarnings(){
   const members = presentMembers();
   const women = members.filter(p => p.gender === 'Nữ');
-  const men = members.filter(p => p.gender === 'Nam');
   const warnings = [];
   if(members.length < 4){
     warnings.push('Cần tối thiểu 4 người có mặt để ghép được 1 trận.');
   }
   if(women.length === 1){
     warnings.push('Hiện chỉ có 1 nữ có mặt — cần tối thiểu 2 nữ trong mỗi trận đôi nam nữ, nên nữ duy nhất này sẽ chưa thể vào sân (không xếp đôi nữ).');
-  }
-  if(women.length >= 2 && men.length < 2 && women.length >= 2){
-    warnings.push('Không đủ nam để ghép đôi nam nữ (cần tối thiểu 2 nam).');
-  }
-  if(women.length === 0 && men.length > 0 && men.length < 4){
-    warnings.push('Chỉ có nam nhưng chưa đủ 4 người để ghép đôi nam — cần thêm người hoặc thêm nữ.');
   }
   return warnings;
 }
@@ -573,8 +703,16 @@ function renderMembers(){
     return `
       <div class="member-row">
         <div class="avatar ${genderCls}">${getInitials(m.name)}</div>
-        <div class="member-info"><div class="member-name">${escapeHtml(m.name)}</div></div>
+        <div class="member-info">
+          <div class="member-name">${escapeHtml(m.name)}</div>
+        </div>
         <div class="member-actions">
+          <select class="level-select" data-action="changelevel" data-id="${m.id}">
+            <option value="newbie" ${m.level==='newbie'?'selected':''}>newbie</option>
+            <option value="Y" ${m.level==='Y'?'selected':''}>Yếu (Y)</option>
+            <option value="TBY" ${m.level==='TBY'?'selected':''}>TBY</option>
+            <option value="TB" ${m.level==='TB'?'selected':''}>Trung bình (TB)</option>
+          </select>
           <button class="pill-toggle ${genderCls}" data-action="togglegender" data-id="${m.id}">${m.gender}</button>
           <div class="switch ${m.present ? 'on' : ''}" data-action="togglepresent" data-id="${m.id}" title="${m.present ? 'Có mặt' : 'Vắng'}">
             <div class="knob"></div>
@@ -606,7 +744,7 @@ function renderSchedule(){
       const typeCls = c.type === 'mixed' ? 'mixed' : 'men';
       const teamHtml = (team) => team.map(p => {
         const dotCls = p.gender === 'Nam' ? 'nam' : 'nu';
-        return `<span class="player"><span class="dot ${dotCls}"></span>${escapeHtml(p.name)}</span>`;
+        return `<span class="player"><span class="dot ${dotCls}"></span>${escapeHtml(p.name)} <span class="lv-tag">${p.level}</span></span>`;
       }).join('');
       return `
         <div class="court-row">
@@ -632,7 +770,7 @@ function renderSchedule(){
           <span class="rnum">Vòng ${rd.round}</span>
           <span class="rtime">${rd.start} – ${rd.end}</span>
         </div>
-        ${courtsHtml || '<div class="empty-hint">Không đủ người hợp lệ cho vòng này.</div>'}
+        ${courtsHtml || '<div class="empty-hint">Không tìm thấy tổ hợp ghép cặp đủ cân bằng trình độ cho vòng này.</div>'}
         ${restingHtml}
       </div>`;
   }).join('');
@@ -643,7 +781,7 @@ function renderSchedule(){
     const dotCls = p.gender === 'Nam' ? 'nam' : 'nu';
     return `
       <div class="stat-row">
-        <span class="name"><span class="dot ${dotCls}"></span>${escapeHtml(p.name)}</span>
+        <span class="name"><span class="dot ${dotCls}"></span>${escapeHtml(p.name)} (${p.level})</span>
         <span class="count ${cnt === 0 ? 'zero' : ''}">${cnt} trận</span>
       </div>`;
   }).join('');
@@ -683,9 +821,11 @@ function handleAction(action, target){
   }
   else if(action === 'addmember'){
     const input = document.getElementById('newMemberName');
+    const lvSelect = document.getElementById('newMemberLevel');
     const name = input.value.trim();
+    const level = lvSelect.value;
     if(name){
-      state.members.push({ id: nextId++, name, gender: state.newGender, present: true });
+      state.members.push({ id: nextId++, name, gender: state.newGender, level, present: true });
       input.value = '';
       state.schedule = null;
     }
@@ -709,6 +849,19 @@ document.addEventListener('click', (e) => {
   const target = e.target.closest('[data-action]');
   if(!target) return;
   handleAction(target.dataset.action, target);
+});
+
+// Lắng nghe sự kiện thay đổi trình độ trực tiếp tại hàng thành viên
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('level-select')) {
+    const id = Number(e.target.dataset.id);
+    const m = state.members.find(x => x.id === id);
+    if (m) {
+      m.level = e.target.value;
+      state.schedule = null;
+      render();
+    }
+  }
 });
 
 document.getElementById('inpStartTime').addEventListener('change', (e) => {
